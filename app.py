@@ -43,7 +43,7 @@ def log_data():
 def ver_registros():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM registros ORDER BY fecha DESC LIMIT 10")
+    c.execute("SELECT * FROM registros ORDER BY id DESC LIMIT 100")
     datos = c.fetchall()
     conn.close()
 
