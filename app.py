@@ -5,16 +5,23 @@ import os
 
 app = Flask(__name__)
 
-def guardar_datos(temp, hum):
+def guardar_datos(temp, hum, timestamp=None):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS registros (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     temp REAL,
                     hum REAL,
-                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
                 )''')
-    c.execute("INSERT INTO registros (temp, hum) VALUES (?, ?)", (temp, hum))
+    
+    if timestamp:
+        # Si se manda desde el ESP32, usalo
+        c.execute("INSERT INTO registros (temp, hum, fecha) VALUES (?, ?, ?)", (temp, hum, timestamp))
+    else:
+        # Si no, usá la hora local del servidor
+        c.execute("INSERT INTO registros (temp, hum) VALUES (?, ?)", (temp, hum))
+    
     conn.commit()
     conn.close()
 
@@ -27,7 +34,9 @@ def log_data():
     data = request.get_json()
     temp = data.get('temperatura')
     hum = data.get('humedad')
-    guardar_datos(temp, hum)
+    timestamp = data.get('timestamp')
+    
+    guardar_datos(temp, hum,timestamp)
     return {'status': 'ok'}, 200
 
 @app.route('/api/registros', methods=['GET'])
