@@ -1,0 +1,24 @@
+<form id="setpoint-form">
+    <label>Temp: <input type="number" name="temp_set" /></label>
+    <label>Humedad: <input type="number" name="hum_set" /></label>
+    <button type="submit">Guardar</button>
+</form>
+
+<script>
+fetch('/api/setpoint').then(res => res.json()).then(data => {
+    document.querySelector('[name="temp_set"]').value = data.temp_set;
+    document.querySelector('[name="hum_set"]').value = data.hum_set;
+});
+
+document.getElementById('setpoint-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const temp = parseFloat(e.target.temp_set.value);
+    const hum = parseFloat(e.target.hum_set.value);
+    await fetch('/api/setpoint', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_set: temp, hum_set: hum })
+    });
+    alert("Setpoint actualizado");
+});
+</script>
