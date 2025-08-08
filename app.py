@@ -2,9 +2,13 @@ from flask import Flask, request
 from datetime import datetime
 import sqlite3
 import os
+from flask_cors import CORS
 import json
 
 app = Flask(__name__)
+
+# Allow all origins (development)
+CORS(app)
 
 def guardar_datos(temp, hum, timestamp=None):
     conn = sqlite3.connect('database.db')
