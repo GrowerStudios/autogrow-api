@@ -140,7 +140,7 @@ def delete_log(log_id):
 
 @app.route('/')
 def home():
-    return "API AutoGrow OK"
+    return index.html
 
 
 if __name__ == '__main__':
