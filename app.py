@@ -34,55 +34,59 @@ def guardar_datos(temp, hum, timestamp=None):
 def get_setpoint():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS setpoints (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            temp_set REAL,
-            hum_set REAL,
-            timestamp TEXT
-            )''')
     
-    c.execute("SELECT temp_set, hum_set FROM setpoints WHERE id = 1")
+    c.execute("SELECT max_temp_set, min_temp_set, max_hum_set, min_hum_set FROM setpoints WHERE id = 1")
     row = c.fetchone()
     conn.close()
     
     if row:
-        return {'temp_set': row[0], 'hum_set': row[1]}, 200
+        return {
+        'max_temp_set': row[0],
+        'min_temp_set': row[1],
+        'max_hum_set': row[2],
+        'min_hum_set': row[3]
+    }, 200
     else:
         return {'error': 'Setpoint no encontrado'}, 404
     
 @app.route('/api/setpoint', methods=['PUT'])
 def update_setpoint():
     data = request.get_json()
-    temp_set = data.get('temp_set')
-    hum_set = data.get('hum_set')
+    max_temp_set = data.get('max_temp_set')
+    min_temp_set = data.get('min_temp_set')
+    max_hum_set = data.get('max_hum_set')
+    min_hum_set = data.get('min_hum_set')
+    
 
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
 
     # Asegurar que la tabla existe
     c.execute('''CREATE TABLE IF NOT EXISTS setpoints (
-        id INTEGER PRIMARY KEY,
-        temp_set REAL,
-        hum_set REAL,
-        timestamp TEXT
-    )''')
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            max_temp_set REAL,
+            min_temp_set REAL,
+            max_hum_set REAL,
+            min_hum_set REAL,
+            fecha TEXT DEFAULT CURRENT_TIMESTAMP
+            )''')
 
     # Verificar si ya hay un setpoint
     c.execute("SELECT 1 FROM setpoints WHERE id = 1")
     exists = c.fetchone()
 
     if exists:
-        c.execute("UPDATE setpoints SET temp_set = ?, hum_set = ?, timestamp = datetime('now') WHERE id = 1",
-                  (temp_set, hum_set))
+        c.execute("UPDATE setpoints SET max_temp_set = ?, min_temp_set = ?, max_hum_set = ?, min_hum_set = ?, fecha = datetime('now') WHERE id = 1",
+                  (max_temp_set, min_temp_set,max_hum_set, min_hum_set))
     else:
-        c.execute("INSERT INTO setpoints (id, temp_set, hum_set, timestamp) VALUES (1, ?, ?, datetime('now'))",
-                  (temp_set, hum_set))
+        c.execute("INSERT INTO setpoints (id, max_temp_set, min_temp_set, max_hum_set, min_hum_set, fecha) VALUES (1, ?, ?, ?, ?, datetime('now'))",
+                  (max_temp_set, min_temp_set,max_hum_set, min_hum_set))
 
     conn.commit()
     conn.close()
 
     return {
-        'status': f'Setpoint actualizado a: Temperatura: {temp_set} Humedad: {hum_set}'
+        'status': f'Setpoint actualizado a: Temperatura Máxima: {max_temp_set} Humedad Máxima: {max_hum_set} Temperatura Mínima: {min_temp_set} Humedad Mínima: {min_hum_set}',
     }, 200
 
 
@@ -140,7 +144,7 @@ def delete_log(log_id):
 
 @app.route('/')
 def home():
-    return index.html
+    return "Api RabbiTotem OK"
 
 
 if __name__ == '__main__':
